@@ -4,6 +4,7 @@ import requests
 import yaml
 import pyfiglet
 from termcolor import colored
+import logging
 
 class bcolors:
     HEADER = '\033[95m'
@@ -57,7 +58,16 @@ class LLMfuzzer:
             print(colored('Success connecting to LLM via API', 'green'))
         except requests.exceptions.RequestException as e:
             raise Exception('Connection error, can''t continue evaluation.')
-        
+
+    # Configure logging
+    logging.basicConfig(filename='fuzzer.log', level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+    def log_response(self, response):
+        logging.info(f"Request URL: {response.url}")
+        logging.info(f"Response Status: {response.status_code}")
+        logging.info(f"Response Body: {response.text[:500]}") 
+
         
     def runAttack(self, path):
         attackConfig = ''
@@ -90,3 +100,9 @@ class LLMfuzzer:
         for attack in self.config['Attacks']:
             self.runAttack(attack['Path'])
 
+    def generate_report(self, results):
+        with open('report.txt', 'w') as file:
+            for result in results:
+                file.write(f"{result}\n")
+
+    #TODO: add logic to adjust queries based on responses >>> adaptive
